@@ -89,42 +89,52 @@ function get_message_from_obj (obj) {
 
 function parse_json (str) {
   let obj = null;
-  let counter = 0; let max = 4;
-  let initial_string = str; let initial_error;
+  let counter = 0;
+  let max = 4;
+  let initial_string = str;
+  let initial_error;
 
-  while (counter < max && !obj) {
-    try {
-      obj = JSON.parse(str);
-    }
-    catch (e) {
-      if (counter === 0) { initial_error = e; }
+  while (counter < max) {
+    if (!obj) {
+      try {
+        obj = JSON.parse(str);
+      }
+      catch (e) {
+        if (counter === 0) {
+          initial_error = e;
+        }
 
-      counter++;
+        counter++;
 
-      R5.out.log(`${e} Attempt #${counter} out of ${max}`);
-
-      switch (counter) {
-        case 1:
-          break;
-        case 2:
-          let re = /"/g;
-          str = str.replace(re, '\\"');
-          break;
-        case 3:
-          re = /'/g;
-          str = str.replace(re, '"');
-          break;
-        default:
-          let msg = {
-            text: `Error using JSON.parse on: <br>
-                     <pre>${initial_string}</pre> <br>
-                     This message was sent from rabbitmq.js. Error Message: <br>
-                     <pre>${initial_error.stack}</pre>`
-          };
-          R5.out.error(`${msg.text}`);
-          counter = max;
+        catch_logger(e, counter, max, str, initial_string, initial_error)
       }
     }
   }
+
   return obj;
+}
+
+function catch_logger (e, count, max, str, initial_string, initial_error) {
+  R5.out.log(`${e} Attempt #${count} out of ${max}`);
+
+  switch (count) {
+    case 1:
+      break;
+    case 2:
+      let reg_ex = /"/g;
+      str = str.replace(reg_ex, '\\"');
+      break;
+    case 3:
+      reg_ex = /'/g;
+      str = str.replace(reg_ex, '"');
+      break;
+    default:
+      let msg = {
+        text: `Error using JSON.parse on: <br>
+                <pre>${initial_string}</pre> <br>
+                This message was sent from rabbitmq.js. Error Message: <br>
+                <pre>${initial_error.stack}</pre>`
+      };
+      R5.out.error(`${msg.text}`);
+  }
 }
