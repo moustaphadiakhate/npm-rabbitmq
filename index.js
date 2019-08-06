@@ -89,10 +89,8 @@ function get_message_from_obj (obj) {
 
 function parse_json (str) {
   let obj = null;
-  let counter = 0;
-  let max = 4;
-  let initial_string = str;
-  let initial_error;
+  let counter = 0; let max = 4;
+  let initial_string = str; let initial_error;
 
   while (counter < max && !obj) {
     try {
